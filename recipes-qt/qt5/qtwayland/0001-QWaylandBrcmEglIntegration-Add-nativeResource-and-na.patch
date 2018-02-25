@@ -1,0 +1,66 @@
+From 0b268b72f255b9c5ae334606f3695fe0309976de Mon Sep 17 00:00:00 2001
+From: Florent Revest <revestflo@gmail.com>
+Date: Thu, 22 Feb 2018 16:37:57 +0100
+Subject: [PATCH] QWaylandBrcmEglIntegration: Add nativeResource and
+ nativeResourceForContext handlers
+
+---
+ .../client/brcm-egl/qwaylandbrcmeglintegration.cpp | 27 ++++++++++++++++++++++
+ .../client/brcm-egl/qwaylandbrcmeglintegration.h   |  3 +++
+ 2 files changed, 30 insertions(+)
+
+diff --git a/src/hardwareintegration/client/brcm-egl/qwaylandbrcmeglintegration.cpp b/src/hardwareintegration/client/brcm-egl/qwaylandbrcmeglintegration.cpp
+index 430b455f..19106c4a 100644
+--- a/src/hardwareintegration/client/brcm-egl/qwaylandbrcmeglintegration.cpp
++++ b/src/hardwareintegration/client/brcm-egl/qwaylandbrcmeglintegration.cpp
+@@ -125,6 +125,33 @@ EGLDisplay QWaylandBrcmEglIntegration::eglDisplay() const
+     return m_eglDisplay;
+ }
+ 
++void *QWaylandBrcmEglIntegration::nativeResource(NativeResource resource)
++{
++    switch (resource) {
++    case EglDisplay:
++        return m_eglDisplay;
++    default:
++        break;
++    }
++    return Q_NULLPTR;
++}
++
++void *QWaylandBrcmEglIntegration::nativeResourceForContext(NativeResource resource, QPlatformOpenGLContext *context)
++{
++    Q_ASSERT(context);
++    switch (resource) {
++    case EglConfig:
++        return static_cast<QWaylandBrcmGLContext *>(context)->eglConfig();
++    case EglContext:
++        return static_cast<QWaylandBrcmGLContext *>(context)->eglContext();
++    case EglDisplay:
++        return m_eglDisplay;
++    default:
++        break;
++    }
++    return Q_NULLPTR;
++}
++
+ }
+ 
+ QT_END_NAMESPACE
+diff --git a/src/hardwareintegration/client/brcm-egl/qwaylandbrcmeglintegration.h b/src/hardwareintegration/client/brcm-egl/qwaylandbrcmeglintegration.h
+index 0a913bcd..305ef204 100644
+--- a/src/hardwareintegration/client/brcm-egl/qwaylandbrcmeglintegration.h
++++ b/src/hardwareintegration/client/brcm-egl/qwaylandbrcmeglintegration.h
+@@ -82,6 +82,9 @@ public:
+     PFNEGLCREATEGLOBALIMAGEBRCMPROC eglCreateGlobalImageBRCM;
+     PFNEGLDESTROYGLOBALIMAGEBRCMPROC eglDestroyGlobalImageBRCM;
+ 
++    void *nativeResource(NativeResource resource) override;
++    void *nativeResourceForContext(NativeResource resource, QPlatformOpenGLContext *context) override;
++
+ private:
+     static void wlDisplayHandleGlobal(void *data, struct wl_registry *registry, uint32_t id, const QString &interface, uint32_t version);
+ 
+-- 
+2.14.3
+
